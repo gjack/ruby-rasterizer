@@ -54,7 +54,7 @@ class Rasterizer
       values << d
       d = d + a
     end
-    values.map(&:floor)
+    values
   end
 
   def draw_wireframe_triangle(point0, point1, point2, color)
@@ -76,9 +76,9 @@ class Rasterizer
     end
 
     # compute the x coordinates of the triangle edges
-    x01 = interpolate(point0[1], point0[0], point1[1], point1[0])
-    x12 = interpolate(point1[1], point1[0], point2[1], point2[0])
-    x02 = interpolate(point0[1], point0[0], point2[1], point2[0])
+    x01 = interpolate(point0[1], point0[0], point1[1], point1[0]).map(&:floor)
+    x12 = interpolate(point1[1], point1[0], point2[1], point2[0]).map(&:floor)
+    x02 = interpolate(point0[1], point0[0], point2[1], point2[0]).map(&:floor)
 
     # concatenate the short sides
     x01.pop
