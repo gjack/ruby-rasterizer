@@ -76,29 +76,53 @@ class Rasterizer
     end
 
     # compute the x coordinates of the triangle edges
+    # also compute intensity h assuming each point can have a third element
+    # which signifies intensity ranging from 0.0 (black) to 1.0 (the color)
     x01 = interpolate(point0[1], point0[0], point1[1], point1[0]).map(&:floor)
+    h01 = interpolate(point0[1], point0[2] || 1.0, point1[1], point1[2] || 1.0)
+
     x12 = interpolate(point1[1], point1[0], point2[1], point2[0]).map(&:floor)
+    h12 = interpolate(point1[1], point1[2] || 1.0, point2[1], point2[2] || 1.0)
+
     x02 = interpolate(point0[1], point0[0], point2[1], point2[0]).map(&:floor)
+    h02 = interpolate(point0[1], point0[2] || 1.0, point2[1], point2[2] || 1.0)
 
     # concatenate the short sides
     x01.pop
     x012 = x01 + x12
+
+    h01.pop
+    h012 = h01 + h12
 
     # determine which is left and which is right
     m = (x012.length / 2.0).floor
 
     if x02[m] < x012[m]
       x_left = x02
+      h_left = h02
+
       x_right = x012
+      h_right = h012
     else
       x_left = x012
+      h_left = h012
+
       x_right = x02
+      h_right = h02
     end
 
-    # draw the horizontal segments 
+    # draw the horizontal segments asigning each a color shade modified by 
+    # the calculated intensity for each pixel 
     (point0[1]..point2[1]).each do |y|
-      (x_left[y - point0[1]]..x_right[y - point0[1]]).each do |x|
-        canvas.put_pixel(x, y, color)
+      x_l = x_left[y - point0[1]]
+      x_r = x_right[y - point0[1]]
+      
+      # calculate the intensity for each pixel along the horizontal line at this y
+      h_segment = interpolate(x_l, h_left[y - point0[1]], x_r, h_right[y - point0[1]])
+      
+      (x_l..x_r).each do |x|
+        shaded_color = color.map {|code| code * h_segment[x - x_l] }
+        canvas.put_pixel(x, y, shaded_color)
       end
     end
   end
