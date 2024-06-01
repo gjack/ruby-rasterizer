@@ -1,11 +1,13 @@
 require_relative "canvas"
+require_relative "viewport"
 
 class Rasterizer
 
-  attr_reader :canvas
+  attr_reader :canvas, :viewport
 
   def initialize
     @canvas ||= Canvas.new
+    @viewport ||= Viewport.new
   end
 
   def draw_line(point1, point2, color)
@@ -119,11 +121,15 @@ class Rasterizer
       
       # calculate the intensity for each pixel along the horizontal line at this y
       h_segment = interpolate(x_l, h_left[y - point0[1]], x_r, h_right[y - point0[1]])
-      
+
       (x_l..x_r).each do |x|
         shaded_color = color.map {|code| code * h_segment[x - x_l] }
         canvas.put_pixel(x, y, shaded_color)
       end
     end
+  end
+
+  def viewport_to_canvas_coordinates(x, y)
+    [x * canvas.width / viewport.width.to_f, y * canvas.height / viewport.height.to_f]
   end
 end
