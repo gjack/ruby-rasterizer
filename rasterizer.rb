@@ -1,13 +1,15 @@
 require_relative "canvas"
 require_relative "viewport"
+require_relative "camera"
 
 class Rasterizer
 
-  attr_reader :canvas, :viewport
+  attr_reader :canvas, :viewport, :camera
 
   def initialize
     @canvas ||= Canvas.new
     @viewport ||= Viewport.new
+    @camera ||= Camera.new
   end
 
   def draw_line(point1, point2, color)
@@ -130,6 +132,43 @@ class Rasterizer
   end
 
   def viewport_to_canvas_coordinates(x, y)
-    [x * canvas.width / viewport.width.to_f, y * canvas.height / viewport.height.to_f]
+    # these are used in draw_line and we need integers, not floats
+    [x * canvas.width / viewport.width.to_f, y * canvas.height / viewport.height.to_f].map(&:floor)
+  end
+
+  def projected_vertex(v)
+    viewport_to_canvas_coordinates(v[0] * camera.distance / v[2], v[1] * camera.distance / v[2])
   end
 end
+
+# Drawing a cube
+
+rt = Rasterizer.new
+
+vAf = [-1, -0.25, 3]
+vBf = [-1, 0.25, 3]
+vCf = [-0.5, 0.25, 3]
+vDf = [-0.5, -0.25, 3]
+
+vAb = [-1, -0.25, 4]
+vBb = [-1, 0.25, 4]
+vCb = [-0.5, 0.25, 4]
+vDb = [-0.5, -0.25, 4]
+
+rt.draw_line(rt.projected_vertex(vAf), rt.projected_vertex(vBf), [0, 0, 255])
+rt.draw_line(rt.projected_vertex(vBf), rt.projected_vertex(vCf), [0, 0, 255])
+rt.draw_line(rt.projected_vertex(vCf), rt.projected_vertex(vDf), [0, 0, 255])
+rt.draw_line(rt.projected_vertex(vDf), rt.projected_vertex(vAf), [0, 0, 255])
+
+rt.draw_line(rt.projected_vertex(vAb), rt.projected_vertex(vBb), [255, 0, 0])
+rt.draw_line(rt.projected_vertex(vBb), rt.projected_vertex(vCb), [255, 0, 0])
+rt.draw_line(rt.projected_vertex(vCb), rt.projected_vertex(vDb), [255, 0, 0])
+rt.draw_line(rt.projected_vertex(vDb), rt.projected_vertex(vAb), [255, 0, 0])
+
+rt.draw_line(rt.projected_vertex(vAf), rt.projected_vertex(vAb), [0, 0, 0])
+rt.draw_line(rt.projected_vertex(vBf), rt.projected_vertex(vBb), [0, 0, 0])
+rt.draw_line(rt.projected_vertex(vCf), rt.projected_vertex(vCb), [0, 0, 0])
+rt.draw_line(rt.projected_vertex(vDf), rt.projected_vertex(vDb), [0, 0, 0])
+
+rt.canvas.save_image(filename: "cube_example.bmp")
+
