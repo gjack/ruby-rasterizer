@@ -1,10 +1,11 @@
 require_relative "canvas"
 require_relative "viewport"
 require_relative "camera"
+require_relative "cube"
 
 class Rasterizer
 
-  attr_reader :canvas, :viewport, :camera
+  attr_reader :canvas, :viewport, :camera, :scene
 
   def initialize
     @canvas ||= Canvas.new
@@ -139,36 +140,42 @@ class Rasterizer
   def projected_vertex(v)
     viewport_to_canvas_coordinates(v[0] * camera.distance / v[2], v[1] * camera.distance / v[2])
   end
+
+  def render_triangle(triangle, projected)
+    draw_wireframe_triangle(projected[triangle.vertices[0]], projected[triangle.vertices[1]], projected[triangle.vertices[2]], triangle.color)
+  end
+
+  def render_instance(instance)
+    model = instance[:model]
+    translated = model.translate_to_position
+    projected = translated.map do |vertex|
+      projected_vertex(vertex)
+    end
+
+    model.triangles.each do |triangle|
+      render_triangle(triangle, projected)
+    end
+  end
+
+  def render_scene
+    scene[:instances].each do |instance|
+      render_instance(instance)
+    end
+
+    canvas.save_image(filename: "scene_of_cubes.bmp")
+  end
+
+  def scene
+    @scene ||= {
+      instances: [
+        {
+          model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]], position: [-1.5, 0, 7])
+        },
+        {
+          model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]], position: [1.5, 0, 7])
+        }
+      ]
+    }
+  end
 end
-
-# Drawing a cube
-
-rt = Rasterizer.new
-
-vAf = [-1, -0.25, 3]
-vBf = [-1, 0.25, 3]
-vCf = [-0.5, 0.25, 3]
-vDf = [-0.5, -0.25, 3]
-
-vAb = [-1, -0.25, 4]
-vBb = [-1, 0.25, 4]
-vCb = [-0.5, 0.25, 4]
-vDb = [-0.5, -0.25, 4]
-
-rt.draw_line(rt.projected_vertex(vAf), rt.projected_vertex(vBf), [0, 0, 255])
-rt.draw_line(rt.projected_vertex(vBf), rt.projected_vertex(vCf), [0, 0, 255])
-rt.draw_line(rt.projected_vertex(vCf), rt.projected_vertex(vDf), [0, 0, 255])
-rt.draw_line(rt.projected_vertex(vDf), rt.projected_vertex(vAf), [0, 0, 255])
-
-rt.draw_line(rt.projected_vertex(vAb), rt.projected_vertex(vBb), [255, 0, 0])
-rt.draw_line(rt.projected_vertex(vBb), rt.projected_vertex(vCb), [255, 0, 0])
-rt.draw_line(rt.projected_vertex(vCb), rt.projected_vertex(vDb), [255, 0, 0])
-rt.draw_line(rt.projected_vertex(vDb), rt.projected_vertex(vAb), [255, 0, 0])
-
-rt.draw_line(rt.projected_vertex(vAf), rt.projected_vertex(vAb), [0, 0, 0])
-rt.draw_line(rt.projected_vertex(vBf), rt.projected_vertex(vBb), [0, 0, 0])
-rt.draw_line(rt.projected_vertex(vCf), rt.projected_vertex(vCb), [0, 0, 0])
-rt.draw_line(rt.projected_vertex(vDf), rt.projected_vertex(vDb), [0, 0, 0])
-
-rt.canvas.save_image(filename: "cube_example.bmp")
 
