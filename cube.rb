@@ -1,14 +1,13 @@
 require_relative "triangle"
 
 class Cube
-  attr_accessor :vertices, :triangles, :position
+  attr_accessor :vertices, :triangles
   attr_reader :center
 
-  def initialize(vertices: [], triangles: [], position: [0, 0, 0])
+  def initialize(vertices: [], triangles: [])
     @center = [0, 0, 0]
     @vertices = vertices
     @triangles = triangles
-    @position = position
   end
 
   def triangles
