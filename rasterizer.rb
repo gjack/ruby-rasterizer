@@ -150,9 +150,14 @@ class Rasterizer
 
   def render_instance(instance)
     model = instance.model
-    translated = instance.translate_to_position
-    projected = translated.map do |vertex|
-      projected_vertex(vertex)
+
+    # obtain the 4 x 4 matrix representing the transformations
+    transformations = instance.transformations
+    projected = model.vertices.map do |vertex|
+      # make it a vector in homogeneous coordinates (canonical)
+      vertexh = vertex.push(1)
+
+      projected_vertex(multiply_4dvector_44matrix(vertexh, transformations))
     end
 
     model.triangles.each do |triangle|
@@ -165,7 +170,7 @@ class Rasterizer
       render_instance(instance)
     end
 
-    canvas.save_image(filename: "scene_of_cubes.bmp")
+    canvas.save_image(filename: "scene_of_cubes_transformed.bmp")
   end
 
   def scene
@@ -177,7 +182,9 @@ class Rasterizer
         ),
         Instance.new(
           model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]]),
-          position: [1.5, 0, 7]
+          position: [1.5, 0, 7],
+          scale: 0.5,
+          orientation_angle: 30,
         ),
       ]
     }

@@ -53,6 +53,8 @@ module Transformable
   # homogeneous rotation around the Y axis with respect to the origin
   # by an angle in degrees
   def rotation_matrix(angle)
+    return IDENTITY_4MATRIX unless angle
+
     cos = Math.cos(angle * Math::PI / 180)
     sin = Math.sin(angle * Math::PI / 180)
 
