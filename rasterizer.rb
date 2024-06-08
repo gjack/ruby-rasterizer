@@ -149,7 +149,7 @@ class Rasterizer
 
   def render_instance(model, transformations)
     projected = model.vertices.map do |vertex|
-      # make it a vector in homogeneous coordinates (canonical)
+      # vertex in homogeneous coordinates (canonical)
       vertexh = vertex.push(1)
 
       projected_vertex(multiply_4dvector_44matrix(vertexh, transformations))
