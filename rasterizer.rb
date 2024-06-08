@@ -2,6 +2,7 @@ require_relative "canvas"
 require_relative "viewport"
 require_relative "camera"
 require_relative "cube"
+require_relative "instance"
 
 class Rasterizer
 
@@ -146,7 +147,7 @@ class Rasterizer
   end
 
   def render_instance(instance)
-    model = instance[:model]
+    model = instance.model
     translated = model.translate_to_position
     projected = translated.map do |vertex|
       projected_vertex(vertex)
@@ -168,12 +169,14 @@ class Rasterizer
   def scene
     @scene ||= {
       instances: [
-        {
-          model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]], position: [-1.5, 0, 7])
-        },
-        {
-          model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]], position: [1.5, 0, 7])
-        }
+        Instance.new(
+          model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]], position: [-1.5, 0, 7]),
+          position: [-1.5, 0, 7]
+        ),
+        Instance.new(
+          model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]], position: [1.5, 0, 7]),
+          position: [1.5, 0, 7]
+        ),
       ]
     }
   end
