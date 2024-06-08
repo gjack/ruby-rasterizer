@@ -13,7 +13,6 @@ class Rasterizer
   def initialize
     @canvas ||= Canvas.new
     @viewport ||= Viewport.new
-    @camera ||= Camera.new
   end
 
   def draw_line(point1, point2, color)
@@ -148,11 +147,7 @@ class Rasterizer
     draw_wireframe_triangle(projected[triangle.vertices[0]], projected[triangle.vertices[1]], projected[triangle.vertices[2]], triangle.color)
   end
 
-  def render_instance(instance)
-    model = instance.model
-
-    # obtain the 4 x 4 matrix representing the transformations
-    transformations = instance.transformations
+  def render_instance(model, transformations)
     projected = model.vertices.map do |vertex|
       # make it a vector in homogeneous coordinates (canonical)
       vertexh = vertex.push(1)
@@ -166,25 +161,34 @@ class Rasterizer
   end
 
   def render_scene
+    camera_transformations = camera.transformations
+
     scene[:instances].each do |instance|
-      render_instance(instance)
+      transformations = multiply_44matrices(camera_transformations, instance.transformations)
+
+      render_instance(instance.model, transformations)
     end
 
-    canvas.save_image(filename: "scene_of_cubes_transformed.bmp")
+    canvas.save_image(filename: "scene_of_cubes_camera_transformed.bmp")
+  end
+
+  def camera
+    @camera ||= scene[:camera]
   end
 
   def scene
     @scene ||= {
+      camera: Camera.new(origin: [-3, 1, 2], orientation_angle: -30),
       instances: [
         Instance.new(
           model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]]),
-          position: [-1.5, 0, 7]
+          position: [-1.5, 0, 7],
+          scale: 0.75
         ),
         Instance.new(
           model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]]),
-          position: [1.5, 0, 7],
-          scale: 0.5,
-          orientation_angle: 30,
+          position: [1.25, 2.5, 7.5],
+          orientation_angle: 195,
         ),
       ]
     }
