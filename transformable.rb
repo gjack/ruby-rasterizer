@@ -8,6 +8,12 @@ module Transformable
     [0, 0, 0, 1]
   ]
 
+  def multiply_by_scalar(vect, scalar)
+    vect.map do |coord|
+      coord * scalar
+    end
+  end
+
   # multipliy a 4D vector by a 4 x 4 matrix
   def multiply_4dvector_44matrix(vect, matrix)
     (0..3).map do |i|
