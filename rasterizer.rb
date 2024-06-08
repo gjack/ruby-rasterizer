@@ -3,9 +3,11 @@ require_relative "viewport"
 require_relative "camera"
 require_relative "cube"
 require_relative "instance"
+require_relative "transformable"
 
 class Rasterizer
-
+  include Transformable
+  
   attr_reader :canvas, :viewport, :camera, :scene
 
   def initialize
