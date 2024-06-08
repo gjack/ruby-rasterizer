@@ -148,7 +148,7 @@ class Rasterizer
 
   def render_instance(instance)
     model = instance.model
-    translated = model.translate_to_position
+    translated = instance.translate_to_position
     projected = translated.map do |vertex|
       projected_vertex(vertex)
     end
