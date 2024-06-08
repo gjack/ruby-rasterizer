@@ -43,9 +43,9 @@ module Transformable
   # creates a homogeneous scale matrix
   def scale_matrix(scale)
     [
-      [scale[0], 0, 0, 0],
-      [0, scale[1], 0, 0],
-      [0, 0, scale[2], 0],
+      [scale, 0, 0, 0],
+      [0, scale, 0, 0],
+      [0, 0, scale, 0],
       [0, 0, 0, 1]
     ]
   end
