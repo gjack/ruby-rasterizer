@@ -181,12 +181,12 @@ class Rasterizer
       camera: Camera.new(origin: [-3, 1, 2], orientation_angle: -30),
       instances: [
         Instance.new(
-          model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]]),
+          model: Cube.new,
           position: [-1.5, 0, 7],
           scale: 0.75
         ),
         Instance.new(
-          model: Cube.new(vertices: [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]]),
+          model: Cube.new,
           position: [1.25, 2.5, 7.5],
           orientation_angle: 195,
         ),

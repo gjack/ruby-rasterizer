@@ -1,16 +1,19 @@
 require_relative "triangle"
 
 class Cube
-  attr_accessor :vertices, :triangles
-  attr_reader :center
+  attr_accessor :vertices, :triangles, :center, :bounds_radius
 
-  def initialize(vertices: [], triangles: [])
-    @center = [0, 0, 0]
-    @vertices = vertices
-    @triangles = triangles
+  # center and bounds_radius are used to describe the smallest sphere that can contain the cube
+  # the radius comes from taking the distance from the center to the furthest vertex in the cube
+  # which for our default cube would be at (1, 1, 1)
+  def initialize(vertices: nil, triangles: nil, center: [0, 0, 0], bounds_radius: Math.sqrt(3))
+    @center = center
+    @vertices = vertices || default_vertices
+    @triangles = triangles || default_triangles
+    @bounds_radius = bounds_radius
   end
 
-  def triangles
+  def default_triangles
     [
       Triangle.new(vertices: [0, 1, 2], color: [255, 0, 0]),
       Triangle.new(vertices: [0, 2, 3], color: [255, 0, 0]),
@@ -25,5 +28,9 @@ class Cube
       Triangle.new(vertices: [2, 6, 7], color: [0, 255, 255]),
       Triangle.new(vertices: [2, 7, 3], color: [0, 255, 255]),
     ]
+  end
+
+  def default_vertices
+    [[1, 1, 1], [-1, 1, 1], [-1, -1, 1], [1, -1, 1], [1, 1, -1], [-1, 1, -1], [-1, -1, -1], [1, -1, -1]]
   end
 end
