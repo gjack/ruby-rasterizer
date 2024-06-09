@@ -147,6 +147,21 @@ class Rasterizer
     draw_wireframe_triangle(projected[triangle.vertices[0]], projected[triangle.vertices[1]], projected[triangle.vertices[2]], triangle.color)
   end
 
+  # transform the vertices in the model and clip them against the planes
+  def transform_and_clip(clipping_planes, model, scale, transform)
+    ## attempt early discard of transformed model inside the bounding sphere
+
+    # express model.center in homogeneous coordinates
+    sphere_center = multiply_4dvector_44matrix(model.center.push(1), transform)
+    sphere_radius = model.bounds_radius * scale
+    clipping_planes.each do |plane|
+      # if the signed distance between the center of the sphere and the plane
+      # is less than the sphere radius then the sphere is outside the viewable volume
+      return nil if dot_product_vectors(plane.normal, sphere_center) < -sphere_radius
+    end
+    model
+  end
+
   def render_instance(model, transformations)
     projected = model.vertices.map do |vertex|
       # vertex in homogeneous coordinates (canonical)
@@ -165,11 +180,12 @@ class Rasterizer
 
     scene[:instances].each do |instance|
       transformations = multiply_44matrices(camera_transformations, instance.transformations)
-
-      render_instance(instance.model, transformations)
+      clipped = transform_and_clip(camera.clipping_planes, instance.model, instance.scale, transformations)
+    
+      render_instance(clipped, transformations) unless clipped.nil?
     end
 
-    canvas.save_image(filename: "scene_of_cubes_camera_transformed.bmp")
+    canvas.save_image(filename: "images/scene_of_cubes_clipped.bmp")
   end
 
   def camera
@@ -188,6 +204,11 @@ class Rasterizer
         Instance.new(
           model: Cube.new,
           position: [1.25, 2.5, 7.5],
+          orientation_angle: 195,
+        ),
+        Instance.new(
+          model: Cube.new,
+          position: [1.25, 2.5, -7.5],
           orientation_angle: 195,
         ),
       ]

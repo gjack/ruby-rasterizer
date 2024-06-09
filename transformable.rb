@@ -79,4 +79,11 @@ module Transformable
       end
     end
   end
+
+  def dot_product_vectors(vect1, vect2)
+    (0..2).inject(0) do |sum, coord|
+      sum += vect1[coord] * vect2[coord]
+      sum
+    end
+  end
 end
