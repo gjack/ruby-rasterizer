@@ -1,5 +1,4 @@
 module Transformable
-  include Math
 
   IDENTITY_4MATRIX = [
     [1, 0, 0, 0],
