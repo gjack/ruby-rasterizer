@@ -147,6 +147,27 @@ class Rasterizer
     draw_wireframe_triangle(projected[triangle.vertices[0]], projected[triangle.vertices[1]], projected[triangle.vertices[2]], triangle.color)
   end
 
+  def clip_triangle(triangle, vertices, plane, clipped_triangles)
+    v0 = vertices[triangle.vertices[0]]
+    v1 = vertices[triangle.vertices[1]]
+    v2 = vertices[triangle.vertices[2]]
+
+    d0 = dot_product_vectors(plane.normal, v0) + plane.distance
+    d1 = dot_product_vectors(plane.normal, v1) + plane.distance
+    d2 = dot_product_vectors(plane.normal, v2) + plane.distance
+
+    # only dealing with the case where the triangle is completely in front of the clipping plane
+    # if a triangle intersects the clipping plane we would need to replace it with one or two 
+    # new triangles to cover the area of the triangle in front of the plane
+    # this would change the triangles and the vertices
+    # and return a new collection of triangles and vertices
+    if d0 > 0 && d1 > 0 && d2 > 0
+      clipped_triangles.push(triangle)
+    end
+
+    return clipped_triangles
+  end
+
   # transform the vertices in the model and clip them against the planes
   def transform_and_clip(clipping_planes, model, scale, transform)
     ## attempt early discard of model inside the bounding sphere
@@ -165,7 +186,17 @@ class Rasterizer
       multiply_4dvector_44matrix(vertex.push(1), transform)
     end
 
-    return model.class.new(vertices: new_vertices, triangles: model.triangles, center: model.center, bounds_radius: model.bounds_radius)
+    # clip the entire model against each successive plane
+    clipped_triangles = model.triangles
+    clipping_planes.each do |plane|
+      new_clipped_triangles = []
+      clipped_triangles.each do |triangle|
+        new_clipped_triangles = clip_triangle(triangle, new_vertices, plane, new_clipped_triangles)
+      end 
+      clipped_triangles = new_clipped_triangles
+    end
+
+    return model.class.new(vertices: new_vertices, triangles: clipped_triangles, center: model.center, bounds_radius: model.bounds_radius)
   end
 
   def render_instance(model)
@@ -200,7 +231,7 @@ class Rasterizer
 
   def scene
     @scene ||= {
-      camera: Camera.new(origin: [-3, 1, 2], orientation_angle: -30),
+      camera: Camera.new(origin: [0, 0, 0], orientation_angle: nil),
       instances: [
         Instance.new(
           model: Cube.new,
@@ -209,13 +240,7 @@ class Rasterizer
         ),
         Instance.new(
           model: Cube.new,
-          position: [1.25, 2.5, 7.5],
-          orientation_angle: 195,
-        ),
-        Instance.new(
-          model: Cube.new,
-          position: [1.25, 2.5, -7.5],
-          orientation_angle: 195,
+          position: [2.5, 1.25, 4.5],
         ),
       ]
     }
