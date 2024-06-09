@@ -149,7 +149,7 @@ class Rasterizer
 
   # transform the vertices in the model and clip them against the planes
   def transform_and_clip(clipping_planes, model, scale, transform)
-    ## attempt early discard of transformed model inside the bounding sphere
+    ## attempt early discard of model inside the bounding sphere
 
     # express model.center in homogeneous coordinates
     sphere_center = multiply_4dvector_44matrix(model.center.push(1), transform)
@@ -159,15 +159,21 @@ class Rasterizer
       # is less than the sphere radius then the sphere is outside the viewable volume
       return nil if dot_product_vectors(plane.normal, sphere_center) < -sphere_radius
     end
-    model
+
+    ## apply the transformation to all the vertices in the model
+    new_vertices = model.vertices.map do |vertex|
+      multiply_4dvector_44matrix(vertex.push(1), transform)
+    end
+
+    return model.class.new(vertices: new_vertices, triangles: model.triangles, center: model.center, bounds_radius: model.bounds_radius)
   end
 
-  def render_instance(model, transformations)
+  def render_instance(model)
     projected = model.vertices.map do |vertex|
       # vertex in homogeneous coordinates (canonical)
       vertexh = vertex.push(1)
 
-      projected_vertex(multiply_4dvector_44matrix(vertexh, transformations))
+      projected_vertex(vertexh)
     end
 
     model.triangles.each do |triangle|
@@ -182,7 +188,7 @@ class Rasterizer
       transformations = multiply_44matrices(camera_transformations, instance.transformations)
       clipped = transform_and_clip(camera.clipping_planes, instance.model, instance.scale, transformations)
     
-      render_instance(clipped, transformations) unless clipped.nil?
+      render_instance(clipped) unless clipped.nil?
     end
 
     canvas.save_image(filename: "images/scene_of_cubes_clipped.bmp")
